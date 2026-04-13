@@ -1,29 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
+using MySqlConnector;
 using ShopContent_Chernyshkov.Classes;
 using ShopContent_Chernyshkov.Modell;
 
 namespace ShopContent_Chernyshkov.Context
 {
-    internal class ItemsContext : Items
+    public class ItemsContext : Items
     {
-
         public ItemsContext(bool save = false)
         {
-            if(save) Save(true);
+            if (save) Save(true);
             Category = new Categorys();
         }
-        
+
         public static ObservableCollection<ItemsContext> AllItems()
         {
-            ObservableCollection<ItemsContext> allItems = new ObservableCollection<ItemsContext>(); 
+            ObservableCollection<ItemsContext> allItems = new ObservableCollection<ItemsContext>();
             ObservableCollection<CategorysContext> allCategorys = CategorysContext.AllCategorys();
-            MySqlConnector connector;
-            SqlDataReader dataItems = Connection.Query("SELECT * FROM [dbo].[Items]", out connector);
+            MySqlConnection connection;
+            MySqlDataReader dataItems = Connection.Query("SELECT * FROM Items", out connection);
             while (dataItems.Read())
             {
                 allItems.Add(new ItemsContext()
@@ -32,65 +29,56 @@ namespace ShopContent_Chernyshkov.Context
                     Name = dataItems.GetString(1),
                     Price = dataItems.GetDouble(2),
                     Description = dataItems.GetString(3),
-                    Category = dataItems.IsDBNull(4) ?
-                    null :
-                    allCategorys.Where(x => x.Id == dataItems.GetInt32(4)).First()
+                    Category = dataItems.IsDBNull(4) ? null : allCategorys.FirstOrDefault(x => x.Id == dataItems.GetInt32(4))
                 });
             }
             Connection.CloseConnection(connection);
             return allItems;
         }
+
         public void Save(bool New = false)
         {
-            SqlConnection connection;
+            MySqlConnection connection;
             if (New)
             {
-                SqlDataReader dataItems = Connection.Query("INSERT INFO" +
-                    "[dbo].[Items](" +
-                    "Name, " +
-                    "Price, " +
-                    "Description, " +
-                    "OUTPUT Inserted.Id " +
-                    $"Values (" +
-                    $"N'{this.Name}', " +
-                    $"N'{this.Price}', " +
-                    $"N'{this.Description}')", out connection);
+                string sql = "INSERT INTO Items (Name, Price, Description) " +
+                             $"VALUES ('{this.Name}', {this.Price}, '{this.Description}'); " +
+                             "SELECT LAST_INSERT_ID();";
+                MySqlDataReader dataItems = Connection.Query(sql, out connection);
                 dataItems.Read();
                 this.Id = dataItems.GetInt32(0);
             }
             else
             {
-                Connection.Query("Update [dbo].[Items] " +
-                    "SET " +
-                        $"Name = N'{this.Name}', " +
-                        $"Price = '{this.Price}', " +
-                        $"Description = N'{this.Description}', " +
-                        $"IdCategory = {this.Category.Id} " +
-                        "WHERE " +
-                        $"Id = {this.Id} ", out connection);
-        
+                string sql = "UPDATE Items SET " +
+                             $"Name = '{this.Name}', " +
+                             $"Price = {this.Price}, " +
+                             $"Description = '{this.Description}', " +
+                             $"IdCategory = {this.Category?.Id ?? 0} " +
+                             $"WHERE Id = {this.Id}";
+                Connection.Query(sql, out connection);
             }
-            Connection.CloseConnection(connection );
+            Connection.CloseConnection(connection);
             MainWindow.init.frame.Navigate(MainWindow.init.Main);
         }
+
         public void Delete()
         {
-            SqlConnection connection;
-            Connection.Query("DELETE GROM [dbo].[Items]" +
-                "WHERE " +
-                $"Id = {this.Id}", out connection);
-            Connection.CloseConnection( connection );
+            MySqlConnection connection;
+            string sql = $"DELETE FROM Items WHERE Id = {this.Id}";
+            Connection.Query(sql, out connection);
+            Connection.CloseConnection(connection);
         }
+
         public RelayCommand OnEdit
         {
-
             get
             {
-                return new RelayCommand(obj => {
+                return new RelayCommand(obj =>
+                {
                     MainWindow.init.frame.Navigate(new View.Add(this));
                 });
             }
-
         }
 
         public RelayCommand OnSave
@@ -99,7 +87,11 @@ namespace ShopContent_Chernyshkov.Context
             {
                 return new RelayCommand(obj =>
                 {
-                    Category = CategoryContext.AllCategorys().Where(x => x.Id == this.Category.Id).First();
+                    if (this.Category != null)
+                    {
+                        Category = CategorysContext.AllCategorys()
+                            .FirstOrDefault(x => x.Id == this.Category.Id);
+                    }
                     Save();
                 });
             }
@@ -112,11 +104,9 @@ namespace ShopContent_Chernyshkov.Context
                 return new RelayCommand(obj =>
                 {
                     Delete();
-                    (MainWindow.init.Main.DataContext as ViewModell.VMItems).Items.Remove(this);    
+                    (MainWindow.init.Main.DataContext as ViewModell.VMItems).Items.Remove(this);
                 });
-
             }
         }
-
     }
 }

@@ -9,72 +9,45 @@ namespace ShopContent_Chernyshkov.Modell
     public class Items : INotifyPropertyChanged
     {
 
-        private int id;
+         private int id;
         public int Id
         {
-            get { return id; }
-            set
-            {
-                id = value;
-                OnPropertyChanged("Id");
-            }
+            get => id;
+            set { id = value; OnPropertyChanged(); }
         }
+
         private string name;
         public string Name
         {
-            get { return name; }
-            set
-            {
-                name = value;
-                OnPropertyChanged("Name");
-
-            }
+            get => name;
+            set { name = value; OnPropertyChanged(); }
         }
 
         private double price;
         public double Price
         {
-            get { return Price; }
-            set
-            {
-                Price = value;
-                OnPropertyChanged("Price");
-
-            }
+            get => price;
+            set { price = value; OnPropertyChanged(); }
         }
 
         private string description;
         public string Description
         {
-            get { return Description; }
-            set
-            {
-                Description = value;
-                OnPropertyChanged("Description");
-
-            }
+            get => description;
+            set { description = value; OnPropertyChanged(); }
         }
 
         private Categorys category;
         public Categorys Category
         {
-            get { return category; }
-            set
-            {
-                category = value;
-                OnPropertyChanged("Category");
-
-            }
+            get => category;
+            set { category = value; OnPropertyChanged(); }
         }
 
-
-
         public event PropertyChangedEventHandler PropertyChanged;
-
-        public void OnPropertyChanged([CallerMemberName] string prop = "")
+        protected void OnPropertyChanged([CallerMemberName] string prop = null)
         {
-            if (PropertyChanged != null)
-                PropertyChanged(this, new PropertyChangedEventArgs(prop));  
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
         }
     }
 }

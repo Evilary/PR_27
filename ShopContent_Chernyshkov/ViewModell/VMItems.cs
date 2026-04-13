@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+
 namespace ShopContent_Chernyshkov.ViewModell
 {
     public class VMItems : INotifyPropertyChanged

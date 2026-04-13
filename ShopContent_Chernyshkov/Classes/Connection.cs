@@ -1,13 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Data;
+using System.Data.SqlClient;
+using MySqlConnector; 
 
 namespace ShopContent_Chernyshkov.Classes
 {
     public class Connection
     {
-        private static string ConnectionConnection = "server=127.0.0.1;uid=root;pwd=;database=;";
-        public static MySqlServerVersion Version = new MySqlServerVersion(new Version(8, 0, 11));
+
+        private static readonly string config = "server=localhost;port=3306;database=poslk;uid=root;pwd=;";
+
+        public static MySqlConnection OpenConnection() 
+        {
+            MySqlConnection connection = new MySqlConnection(config);
+            connection.Open();
+            return connection;
+        }
+
+        public static MySqlDataReader Query(string SQL, out MySqlConnection connection) 
+        {
+            connection = OpenConnection();
+            return new MySqlCommand(SQL, connection).ExecuteReader();
+        }
+
+        public static void CloseConnection(MySqlConnection connection) 
+        {
+            connection.Close();
+            MySqlConnection.ClearPool(connection);
+        }
     }
 }

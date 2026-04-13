@@ -16,6 +16,9 @@ namespace ShopContent_Chernyshkov
         {
             InitializeComponent();
             init = this;
+            Main = new View.Main();
+            Main.DataContext = new ViewModell.VMItems();
+
             frame.Navigate(Main);
         }
         private void OpenIndex(object sender, MouseButtonEventArgs e)=> 

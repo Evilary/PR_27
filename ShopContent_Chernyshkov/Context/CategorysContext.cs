@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
 using ShopContent_Chernyshkov.Modell;
+using MySqlConnector;
+using ShopContent_Chernyshkov.Classes;
 
 namespace ShopContent_Chernyshkov.Context
 {
@@ -12,8 +14,8 @@ namespace ShopContent_Chernyshkov.Context
         {
 
             ObservableCollection<CategorysContext> allCategorys = new ObservableCollection<CategorysContext>();
-            SqlConnection connection;
-            SqlDataReader dataCategorys = Connection.Query("SELECT * FROM [dbo].[Categorys]", out connection);
+            MySqlConnection connection;
+            MySqlDataReader dataCategorys = Connection.Query("SELECT * FROM Categorys", out connection);
             while (dataCategorys.Read())
             {
                 allCategorys.Add(new CategorysContext()
@@ -22,7 +24,7 @@ namespace ShopContent_Chernyshkov.Context
                     Name = dataCategorys.GetString(1),
                 });
             }
-            connection.CloseConnection(connection);
+            Connection.CloseConnection(connection);  
 
             return allCategorys;
         }
